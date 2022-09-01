@@ -1,0 +1,51 @@
+---
+version: '3'
+services:
+  db:
+    image: postgres
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: mostest
+      POSTGRES_USER: mmuser
+      POSTGRES_DB: mattermost_test
+  mattermost:
+    # This can be updated with docker tags from https://hub.docker.com/r/mattermost/mattermost-enterprise-edition/tags
+    image: mattermost/mattermost-enterprise-edition:7.2
+    ports:
+      - '8066:8066'
+    volumes:
+      - ./config:/app/config
+    environment:
+      # MM_CONFIG: /app/config/config.json
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@db/mattermost_test?sslmode=disable&connect_timeout=10
+      MM_SERVICESETTINGS_LISTENADDRESS: :8066
+      MM_SERVICESETTINGS_SITEURL: http://localhost:8066
+      MM_SERVICESETTINGS_ENABLEBOTACCOUNTCREATION: "true"
+      MM_SERVICESETTINGS_ENABLEOAUTHSERVICEPROVIDER: "true"
+      MM_SERVICESETTINGS_ENABLEDEVELOPER: "true"
+      MM_SERVICESETTINGS_ENABLETESTING: "true"
+      MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "true"
+      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
+      MM_FEATUREFLAGS_AppsEnabled: "true"
+      # This can be updated with release versions from https://github.com/mattermost/mattermost-plugin-apps/releases
+      MM_FEATUREFLAGS_PluginApps: 1.1.0
+      MM_LOGSETTINGS_CONSOLELEVEL: DEBUG
+      MM_LOGSETTINGS_FILELEVEL: DEBUG
+    depends_on:
+      - db
+  mm-apps-starter-go:
+    image: gcr.io/distroless/base
+    ports:
+      - '4000:4000'
+    working_dir: /app
+    volumes:
+      - ../../dist:/app
+    environment:
+      SERVER_ADDRESS: mm-apps-starter-go:4000
+    command: /app/mm-apps-starter-go
+volumes:
+  postgres-data:
