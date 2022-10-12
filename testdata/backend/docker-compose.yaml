@@ -11,6 +11,7 @@ services:
       POSTGRES_PASSWORD: mostest
       POSTGRES_USER: mmuser
       POSTGRES_DB: mattermost_test
+    restart: unless-stopped
   mattermost:
     # This can be updated with docker tags from https://hub.docker.com/r/mattermost/mattermost-enterprise-edition/tags
     image: mattermost/mattermost-enterprise-edition:7.2
@@ -23,7 +24,7 @@ services:
       MM_SQLSETTINGS_DRIVERNAME: postgres
       MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@db/mattermost_test?sslmode=disable&connect_timeout=10
       MM_SERVICESETTINGS_LISTENADDRESS: :8066
-      MM_SERVICESETTINGS_SITEURL: http://localhost:8066
+      MM_SERVICESETTINGS_SITEURL: http://mattermost:8066
       MM_SERVICESETTINGS_ENABLEBOTACCOUNTCREATION: "true"
       MM_SERVICESETTINGS_ENABLEOAUTHSERVICEPROVIDER: "true"
       MM_SERVICESETTINGS_ENABLEDEVELOPER: "true"
@@ -37,6 +38,7 @@ services:
       MM_LOGSETTINGS_FILELEVEL: DEBUG
     depends_on:
       - db
+    restart: unless-stopped
   mm-apps-starter-go:
     image: gcr.io/distroless/base
     ports:
@@ -47,5 +49,6 @@ services:
     environment:
       SERVER_ADDRESS: mm-apps-starter-go:4000
     command: /app/mm-apps-starter-go
+    restart: unless-stopped
 volumes:
   postgres-data:
